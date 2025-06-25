@@ -1,5 +1,6 @@
 package com.example.pontual
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,8 +67,17 @@ fun LoginScreen(
                     modifier = Modifier.padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Logo
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_pontuall),
+                        contentDescription = "Logo Pontuall",
+                        modifier = Modifier.size(80.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
                     Text(
-                        text = "Pontual",
+                        text = "Pontuall",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -235,7 +246,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.weight(1f))
             
             Text(
-                text = "© 2024 Pontual. Todos os direitos reservados.",
+                text = "© 2025 Pontuall. Todos os direitos reservados.",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

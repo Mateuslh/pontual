@@ -17,6 +17,8 @@ import com.example.pontual.repository.DriverRepository
 import com.example.pontual.components.LoadingScreen
 import com.example.pontual.components.ErrorScreen
 import com.example.pontual.components.EmptyStateScreen
+import com.example.pontual.components.PontualTopAppBar
+import com.example.pontual.components.TopAppBarAction
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +26,7 @@ import kotlinx.coroutines.launch
 fun DriversScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     isAdmin: Boolean = false
 ) {
@@ -62,13 +65,16 @@ fun DriversScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Motoristas") },
+            PontualTopAppBar(
+                title = "Motoristas",
+                onNavigateBack = onNavigateBack,
                 actions = {
                     if (isAdmin) {
-                        IconButton(onClick = onNavigateToCreate) {
-                            Icon(Icons.Default.Add, contentDescription = "Adicionar")
-                        }
+                        TopAppBarAction(
+                            icon = Icons.Default.Add,
+                            contentDescription = "Adicionar",
+                            onClick = onNavigateToCreate
+                        )
                     }
                 }
             )

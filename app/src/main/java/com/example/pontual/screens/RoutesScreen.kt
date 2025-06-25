@@ -16,6 +16,8 @@ import com.example.pontual.repository.RouteRepository
 import com.example.pontual.components.LoadingScreen
 import com.example.pontual.components.ErrorScreen
 import com.example.pontual.components.EmptyStateScreen
+import com.example.pontual.components.PontualTopAppBar
+import com.example.pontual.components.TopAppBarAction
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 fun RoutesScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     isAdmin: Boolean = false
 ) {
@@ -59,12 +62,15 @@ fun RoutesScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(if (isAdmin) "Todas as Rotas" else "Minhas Rotas") },
+            PontualTopAppBar(
+                title = if (isAdmin) "Todas as Rotas" else "Minhas Rotas",
+                onNavigateBack = onNavigateBack,
                 actions = {
-                    IconButton(onClick = onNavigateToCreate) {
-                        Icon(Icons.Default.Add, contentDescription = "Adicionar")
-                    }
+                    TopAppBarAction(
+                        icon = Icons.Default.Add,
+                        contentDescription = "Adicionar",
+                        onClick = onNavigateToCreate
+                    )
                 }
             )
         },
