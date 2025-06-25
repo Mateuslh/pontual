@@ -8,6 +8,7 @@ import com.example.pontual.screens.DriversScreen
 import com.example.pontual.screens.DeliveriesScreen
 import com.example.pontual.screens.RouteFormScreen
 import com.example.pontual.screens.DriverFormScreen
+import com.example.pontual.screens.DeliveryFormScreen
 
 sealed class Screen {
     object Login : Screen()
@@ -19,6 +20,7 @@ sealed class Screen {
     object Drivers : Screen()
     object DriverForm : Screen()
     object Deliveries : Screen()
+    object DeliveryForm : Screen()
 }
 
 data class ScreenWithParams(
@@ -104,10 +106,18 @@ fun AppNavigation(
         
         is Screen.Deliveries -> {
             DeliveriesScreen(
-                onNavigateToCreate = { /* TODO: Implementar tela de criação de entrega */ },
+                onNavigateToCreate = { onNavigate(ScreenWithParams(Screen.DeliveryForm)) },
                 onNavigateToEdit = { deliveryId ->
-                    // TODO: Implementar navegação com parâmetros
+                    onNavigate(ScreenWithParams(Screen.DeliveryForm, mapOf("deliveryId" to deliveryId)))
                 }
+            )
+        }
+        
+        is Screen.DeliveryForm -> {
+            val deliveryId = currentScreen.params["deliveryId"] as? Int
+            DeliveryFormScreen(
+                deliveryId = deliveryId,
+                onNavigateBack = onNavigateBack
             )
         }
     }

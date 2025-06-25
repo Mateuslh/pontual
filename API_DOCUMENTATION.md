@@ -1,719 +1,254 @@
-# API Documentation - Sistema de Gerenciamento de Entregas
+# Sistema de Gerenciamento de Entregas API
 
-## Base URL
+API completa para gerenciamento de entregas implementada com FastAPI e PostgreSQL, incluindo autenticação, motoristas, pontos de entrega, rotas e entregas.
+
+## Estrutura do Projeto
+
 ```
-http://localhost:3000/api/v1
+api-mock/
+├── app/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── database.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── auth.py
+│   ├── repository.py
+│   ├── seed_data.py
+│   ├── auth_middleware.py
+│   └── routers/
+│       ├── __init__.py
+│       ├── auth.py
+│       ├── users.py
+│       ├── drivers.py
+│       ├── delivery_points.py
+│       ├── routes.py
+│       └── deliveries.py
+├── main.py
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+## Como Executar
+
+### Com Docker Compose (Recomendado)
+
+```bash
+docker compose up --build
+```
+
+### Localmente
+
+1. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+2. Configure o PostgreSQL e as variáveis de ambiente
+
+3. Execute a aplicação:
+```bash
+uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
 ## Autenticação
 
-### Login
-**POST** `/user/login`
+- Todos os endpoints (exceto login) exigem autenticação via JWT.
+- O token deve ser enviado no header:
+  ```
+  Authorization: Bearer {token}
+  ```
+- O login retorna `token` e `refreshToken`.
 
-**Request:**
-```json
-{
-  "email": "usuario@exemplo.com",
-  "password": "senha123"
-}
+## Perfis de Usuário
+- **admin**: pode criar, editar, listar e deletar motoristas, ver e editar todas as rotas, atribuir motoristas a rotas.
+- **user**: pode criar, editar, listar e deletar apenas suas próprias rotas.
+
+## Endpoints da API
+
+### Base URL
+```
+http://localhost:3000/api/v1
 ```
 
-**Response (200):**
+### Autenticação
+
+#### POST /user/login
+Login de usuário
+```json
+{
+  "email": "admin@exemplo.com",
+  "password": "admin123"
+}
+```
+**Response:**
 ```json
 {
   "success": true,
   "message": "Login realizado com sucesso",
-  "token": "jwt_token_aqui",
-  "refreshToken": "refresh_token_aqui",
+  "token": "...",
+  "refreshToken": "...",
   "user": {
-    "id": 1,
-    "email": "usuario@exemplo.com",
-    "name": "Nome do Usuário",
-    "role": "admin"
-  }
-}
-```
-
-**Response (401):**
-```json
-{
-  "success": false,
-  "message": "Credenciais inválidas"
-}
-```
-
-### Logout
-**POST** `/user/logout`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Logout realizado com sucesso"
-}
-```
-
-### Refresh Token
-**POST** `/user/refresh`
-
-**Request:**
-```json
-{
-  "refreshToken": "refresh_token_aqui"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "token": "novo_jwt_token",
-  "refreshToken": "novo_refresh_token"
-}
-```
-
-## Usuários
-
-### Listar Usuários
-**GET** `/users`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-[
-  {
     "id": 1,
     "email": "admin@exemplo.com",
     "name": "Administrador",
     "role": "admin"
-  },
-  {
-    "id": 2,
-    "email": "usuario@exemplo.com",
-    "name": "Usuário Normal",
-    "role": "user"
   }
-]
-```
-
-### Perfil do Usuário
-**GET** `/users/profile`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "email": "usuario@exemplo.com",
-  "name": "Nome do Usuário",
-  "role": "admin"
 }
 ```
 
-## Pontos de Entrega
+### Usuários
 
-### Listar Pontos de Entrega
-**GET** `/delivery-points`
+#### GET /users
+Listar todos os usuários
 
-**Headers:** `Authorization: Bearer {token}`
+#### GET /users/profile
+Obter perfil do usuário atual
 
-**Response (200):**
-```json
-[
-  {
-    "id": 1,
-    "name": "Loja Centro",
-    "address": "Rua das Flores, 123 - Centro",
-    "latitude": -23.5505,
-    "longitude": -46.6333,
-    "contactName": "João Silva",
-    "contactPhone": "(11) 99999-9999",
-    "notes": "Entregar no horário comercial",
-    "isActive": true,
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z"
-  }
-]
-```
+#### POST /users/seed
+Cria usuários de exemplo (admin e user)
 
-### Obter Ponto de Entrega
-**GET** `/delivery-points/{id}`
+### Motoristas (apenas admin)
 
-**Headers:** `Authorization: Bearer {token}`
+#### GET /drivers
+Lista todos os motoristas
 
-**Response (200):**
+#### GET /drivers/{driver_id}
+Obter motorista específico
+
+#### POST /drivers
+Cria um novo motorista
 ```json
 {
-  "id": 1,
+  "name": "João Motorista",
+  "email": "joao@exemplo.com",
+  "phone": "(11) 66666-6666",
+  "license_number": "987654321",
+  "vehicle_plate": "XYZ-5678",
+  "vehicle_model": "Chevrolet Montana"
+}
+```
+
+#### PUT /drivers/{driver_id}
+Atualiza motorista
+
+#### DELETE /drivers/{driver_id}
+Remove motorista
+
+#### GET /drivers/{driver_id}/routes
+Lista rotas atribuídas ao motorista
+
+### Pontos de Entrega
+
+#### GET /delivery-points
+Lista todos os pontos de entrega
+
+#### GET /delivery-points/{point_id}
+Obter ponto de entrega específico
+
+#### POST /delivery-points
+Cria novo ponto de entrega
+```json
+{
   "name": "Loja Centro",
   "address": "Rua das Flores, 123 - Centro",
-  "latitude": -23.5505,
-  "longitude": -46.6333,
-  "contactName": "João Silva",
-  "contactPhone": "(11) 99999-9999",
-  "notes": "Entregar no horário comercial",
-  "isActive": true,
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T10:00:00Z"
-}
-```
-
-### Criar Ponto de Entrega
-**POST** `/delivery-points`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
-```json
-{
-  "name": "Nova Loja",
-  "address": "Av. Paulista, 1000 - Bela Vista",
-  "latitude": -23.5631,
-  "longitude": -46.6544,
-  "contactName": "Maria Santos",
-  "contactPhone": "(11) 88888-8888",
-  "notes": "Entregar após 14h"
-}
-```
-
-**Response (201):**
-```json
-{
-  "id": 2,
-  "name": "Nova Loja",
-  "address": "Av. Paulista, 1000 - Bela Vista",
-  "latitude": -23.5631,
-  "longitude": -46.6544,
-  "contactName": "Maria Santos",
-  "contactPhone": "(11) 88888-8888",
-  "notes": "Entregar após 14h",
-  "isActive": true,
-  "createdAt": "2024-01-01T11:00:00Z",
-  "updatedAt": "2024-01-01T11:00:00Z"
-}
-```
-
-### Atualizar Ponto de Entrega
-**PUT** `/delivery-points/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
-```json
-{
-  "name": "Loja Centro Atualizada",
-  "address": "Rua das Flores, 123 - Centro",
-  "latitude": -23.5505,
-  "longitude": -46.6333,
-  "contactName": "João Silva",
-  "contactPhone": "(11) 99999-9999",
+  "contact_name": "João Silva",
+  "contact_phone": "(11) 99999-9999",
   "notes": "Entregar no horário comercial"
 }
 ```
 
-**Response (200):**
+#### PUT /delivery-points/{point_id}
+Atualiza ponto de entrega
+
+#### DELETE /delivery-points/{point_id}
+Remove ponto de entrega
+
+### Rotas
+
+#### GET /routes
+- **user**: lista apenas suas rotas
+- **admin**: lista todas as rotas
+
+#### GET /routes/{route_id}
+Obter rota específica
+
+#### POST /routes
+Cria uma nova rota vinculada ao usuário autenticado
 ```json
 {
-  "id": 1,
-  "name": "Loja Centro Atualizada",
-  "address": "Rua das Flores, 123 - Centro",
-  "latitude": -23.5505,
-  "longitude": -46.6333,
-  "contactName": "João Silva",
-  "contactPhone": "(11) 99999-9999",
-  "notes": "Entregar no horário comercial",
-  "isActive": true,
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T12:00:00Z"
-}
-```
-
-### Deletar Ponto de Entrega
-**DELETE** `/delivery-points/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (204):** No content
-
-## Rotas
-
-### Listar Rotas
-**GET** `/routes`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-[
-  {
-    "id": 1,
-    "name": "Rota Centro",
-    "description": "Entrega no centro da cidade",
-    "points": [
-      {
-        "id": 1,
-        "routeId": 1,
-        "deliveryPointId": 1,
-        "sequence": 1,
-        "deliveryPoint": {
-          "id": 1,
-          "name": "Loja Centro",
-          "address": "Rua das Flores, 123 - Centro",
-          "latitude": -23.5505,
-          "longitude": -46.6333,
-          "contactName": "João Silva",
-          "contactPhone": "(11) 99999-9999",
-          "notes": "Entregar no horário comercial",
-          "isActive": true,
-          "createdAt": "2024-01-01T10:00:00Z",
-          "updatedAt": "2024-01-01T10:00:00Z"
-        }
-      }
-    ],
-    "driverId": 1,
-    "driverName": "Carlos Motorista",
-    "estimatedDuration": 120,
-    "totalDistance": 15.5,
-    "isActive": true,
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z"
-  }
-]
-```
-
-### Obter Rota
-**GET** `/routes/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-{
-  "id": 1,
   "name": "Rota Centro",
   "description": "Entrega no centro da cidade",
-  "points": [
-    {
-      "id": 1,
-      "routeId": 1,
-      "deliveryPointId": 1,
-      "sequence": 1,
-      "deliveryPoint": {
-        "id": 1,
-        "name": "Loja Centro",
-        "address": "Rua das Flores, 123 - Centro",
-        "latitude": -23.5505,
-        "longitude": -46.6333,
-        "contactName": "João Silva",
-        "contactPhone": "(11) 99999-9999",
-        "notes": "Entregar no horário comercial",
-        "isActive": true,
-        "createdAt": "2024-01-01T10:00:00Z",
-        "updatedAt": "2024-01-01T10:00:00Z"
-      }
-    }
-  ],
-  "driverId": 1,
-  "driverName": "Carlos Motorista",
-  "estimatedDuration": 120,
-  "totalDistance": 15.5,
-  "isActive": true,
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T10:00:00Z"
+  "point_ids": [1, 2, 3]
 }
 ```
 
-### Criar Rota
-**POST** `/routes`
+#### PUT /routes/{route_id}
+Edita rota (usuário só pode editar suas próprias)
 
-**Headers:** `Authorization: Bearer {token}`
+#### DELETE /routes/{route_id}
+Remove rota (usuário só pode deletar suas próprias)
 
-**Request:**
+#### POST /routes/assign
+Atribui motorista a uma rota (apenas admin)
 ```json
 {
-  "name": "Nova Rota",
-  "description": "Rota para zona sul",
-  "pointIds": [1, 2, 3]
+  "route_id": 1,
+  "driver_id": 1
 }
 ```
 
-**Response (201):**
-```json
-{
-  "id": 2,
-  "name": "Nova Rota",
-  "description": "Rota para zona sul",
-  "points": [
-    {
-      "id": 2,
-      "routeId": 2,
-      "deliveryPointId": 1,
-      "sequence": 1,
-      "deliveryPoint": {
-        "id": 1,
-        "name": "Loja Centro",
-        "address": "Rua das Flores, 123 - Centro",
-        "latitude": -23.5505,
-        "longitude": -46.6333,
-        "contactName": "João Silva",
-        "contactPhone": "(11) 99999-9999",
-        "notes": "Entregar no horário comercial",
-        "isActive": true,
-        "createdAt": "2024-01-01T10:00:00Z",
-        "updatedAt": "2024-01-01T10:00:00Z"
-      }
-    }
-  ],
-  "driverId": null,
-  "driverName": null,
-  "estimatedDuration": null,
-  "totalDistance": null,
-  "isActive": true,
-  "createdAt": "2024-01-01T13:00:00Z",
-  "updatedAt": "2024-01-01T13:00:00Z"
-}
-```
+### Entregas
 
-### Atualizar Rota
-**PUT** `/routes/{id}`
+#### GET /deliveries
+Lista todas as entregas (filtros opcionais: status, driver_id, route_id)
 
-**Headers:** `Authorization: Bearer {token}`
+#### GET /deliveries/{delivery_id}
+Obter entrega específica
 
-**Request:**
-```json
-{
-  "name": "Rota Centro Atualizada",
-  "description": "Entrega no centro da cidade - atualizada",
-  "pointIds": [1, 3, 2]
-}
-```
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Rota Centro Atualizada",
-  "description": "Entrega no centro da cidade - atualizada",
-  "points": [
-    {
-      "id": 1,
-      "routeId": 1,
-      "deliveryPointId": 1,
-      "sequence": 1,
-      "deliveryPoint": {
-        "id": 1,
-        "name": "Loja Centro",
-        "address": "Rua das Flores, 123 - Centro",
-        "latitude": -23.5505,
-        "longitude": -46.6333,
-        "contactName": "João Silva",
-        "contactPhone": "(11) 99999-9999",
-        "notes": "Entregar no horário comercial",
-        "isActive": true,
-        "createdAt": "2024-01-01T10:00:00Z",
-        "updatedAt": "2024-01-01T10:00:00Z"
-      }
-    }
-  ],
-  "driverId": 1,
-  "driverName": "Carlos Motorista",
-  "estimatedDuration": 120,
-  "totalDistance": 15.5,
-  "isActive": true,
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T14:00:00Z"
-}
-```
-
-### Deletar Rota
-**DELETE** `/routes/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (204):** No content
-
-### Atribuir Rota a Motorista
-**POST** `/routes/assign`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
-```json
-{
-  "routeId": 1,
-  "driverId": 1
-}
-```
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Rota Centro",
-  "description": "Entrega no centro da cidade",
-  "points": [...],
-  "driverId": 1,
-  "driverName": "Carlos Motorista",
-  "estimatedDuration": 120,
-  "totalDistance": 15.5,
-  "isActive": true,
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T15:00:00Z"
-}
-```
-
-## Motoristas
-
-### Listar Motoristas
-**GET** `/drivers`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-[
-  {
-    "id": 1,
-    "name": "Carlos Motorista",
-    "email": "carlos@exemplo.com",
-    "phone": "(11) 77777-7777",
-    "licenseNumber": "123456789",
-    "vehiclePlate": "ABC-1234",
-    "vehicleModel": "Fiat Strada",
-    "isActive": true,
-    "currentRouteId": 1,
-    "currentRouteName": "Rota Centro",
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z"
-  }
-]
-```
-
-### Obter Motorista
-**GET** `/drivers/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Carlos Motorista",
-  "email": "carlos@exemplo.com",
-  "phone": "(11) 77777-7777",
-  "licenseNumber": "123456789",
-  "vehiclePlate": "ABC-1234",
-  "vehicleModel": "Fiat Strada",
-  "isActive": true,
-  "currentRouteId": 1,
-  "currentRouteName": "Rota Centro",
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T10:00:00Z"
-}
-```
-
-### Criar Motorista
-**POST** `/drivers`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
-```json
-{
-  "name": "João Motorista",
-  "email": "joao@exemplo.com",
-  "phone": "(11) 66666-6666",
-  "licenseNumber": "987654321",
-  "vehiclePlate": "XYZ-5678",
-  "vehicleModel": "Chevrolet Montana"
-}
-```
-
-**Response (201):**
-```json
-{
-  "id": 2,
-  "name": "João Motorista",
-  "email": "joao@exemplo.com",
-  "phone": "(11) 66666-6666",
-  "licenseNumber": "987654321",
-  "vehiclePlate": "XYZ-5678",
-  "vehicleModel": "Chevrolet Montana",
-  "isActive": true,
-  "currentRouteId": null,
-  "currentRouteName": null,
-  "createdAt": "2024-01-01T16:00:00Z",
-  "updatedAt": "2024-01-01T16:00:00Z"
-}
-```
-
-### Atualizar Motorista
-**PUT** `/drivers/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
-```json
-{
-  "name": "Carlos Motorista Atualizado",
-  "email": "carlos@exemplo.com",
-  "phone": "(11) 77777-7777",
-  "licenseNumber": "123456789",
-  "vehiclePlate": "ABC-1234",
-  "vehicleModel": "Fiat Strada"
-}
-```
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Carlos Motorista Atualizado",
-  "email": "carlos@exemplo.com",
-  "phone": "(11) 77777-7777",
-  "licenseNumber": "123456789",
-  "vehiclePlate": "ABC-1234",
-  "vehicleModel": "Fiat Strada",
-  "isActive": true,
-  "currentRouteId": 1,
-  "currentRouteName": "Rota Centro",
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T17:00:00Z"
-}
-```
-
-### Deletar Motorista
-**DELETE** `/drivers/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (204):** No content
-
-### Rotas do Motorista
-**GET** `/drivers/{driverId}/routes`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-[
-  {
-    "id": 1,
-    "name": "Rota Centro",
-    "description": "Entrega no centro da cidade",
-    "points": [...],
-    "driverId": 1,
-    "driverName": "Carlos Motorista",
-    "estimatedDuration": 120,
-    "totalDistance": 15.5,
-    "isActive": true,
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z"
-  }
-]
-```
-
-## Entregas
-
-### Listar Entregas
-**GET** `/deliveries`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Query Parameters:**
-- `status` (opcional): Filtro por status (pending, in_progress, completed, failed, cancelled)
-- `driverId` (opcional): Filtro por motorista
-- `routeId` (opcional): Filtro por rota
-
-**Response (200):**
-```json
-[
-  {
-    "id": 1,
-    "routeId": 1,
-    "routeName": "Rota Centro",
-    "driverId": 1,
-    "driverName": "Carlos Motorista",
-    "deliveryPointId": 1,
-    "deliveryPointName": "Loja Centro",
-    "deliveryPointAddress": "Rua das Flores, 123 - Centro",
-    "status": "completed",
-    "scheduledDate": "2024-01-01T10:00:00Z",
-    "completedDate": "2024-01-01T11:30:00Z",
-    "notes": "Entregue com sucesso",
-    "signature": "https://exemplo.com/signatures/1.jpg",
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T11:30:00Z"
-  }
-]
-```
-
-### Obter Entrega
-**GET** `/deliveries/{id}`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "routeId": 1,
-  "routeName": "Rota Centro",
-  "driverId": 1,
-  "driverName": "Carlos Motorista",
-  "deliveryPointId": 1,
-  "deliveryPointName": "Loja Centro",
-  "deliveryPointAddress": "Rua das Flores, 123 - Centro",
-  "status": "completed",
-  "scheduledDate": "2024-01-01T10:00:00Z",
-  "completedDate": "2024-01-01T11:30:00Z",
-  "notes": "Entregue com sucesso",
-  "signature": "https://exemplo.com/signatures/1.jpg",
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T11:30:00Z"
-}
-```
-
-### Atualizar Status da Entrega
-**PUT** `/deliveries/{id}/status`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Request:**
+#### PUT /deliveries/{delivery_id}/status
+Atualiza status da entrega
 ```json
 {
   "status": "completed",
   "notes": "Entregue com sucesso",
-  "signature": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+  "signature": "data:image/jpeg;base64,..."
 }
 ```
 
-**Response (200):**
-```json
-{
-  "id": 1,
-  "routeId": 1,
-  "routeName": "Rota Centro",
-  "driverId": 1,
-  "driverName": "Carlos Motorista",
-  "deliveryPointId": 1,
-  "deliveryPointName": "Loja Centro",
-  "deliveryPointAddress": "Rua das Flores, 123 - Centro",
-  "status": "completed",
-  "scheduledDate": "2024-01-01T10:00:00Z",
-  "completedDate": "2024-01-01T12:00:00Z",
-  "notes": "Entregue com sucesso",
-  "signature": "https://exemplo.com/signatures/1.jpg",
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T12:00:00Z"
-}
-```
+## Exemplo de Fluxo
 
-## Códigos de Status HTTP
+1. **Usuário comum** faz login, cria e gerencia suas rotas.
+2. **Admin** faz login, cadastra motoristas e pode atribuí-los a qualquer rota.
+3. Todos os endpoints protegidos exigem o header `Authorization: Bearer {token}`.
+
+## Usuários de Teste
+
+- **Admin:** admin@exemplo.com / admin123
+- **User:** usuario@exemplo.com / user123
+
+## Dados de Exemplo
+
+A API inclui dados de exemplo para:
+- 2 usuários (admin e usuário normal)
+- 2 motoristas (Carlos e João)
+- 2 pontos de entrega (Loja Centro e Loja Zona Sul)
+- 1 rota (Rota Centro)
+
+## Configuração
+
+A API está configurada para rodar na porta 3000, compatível com as configurações do cliente Kotlin:
+
+- BASE_URL_EMULATOR: http://10.0.2.2:3000/
+- BASE_URL_DEVICE: http://192.168.1.100:3000/
+
+## Documentação Interativa
+- Swagger UI: http://localhost:3000/docs
+- ReDoc: http://localhost:3000/redoc
+
+## Status HTTP
 
 - **200**: Sucesso
 - **201**: Criado com sucesso
@@ -722,56 +257,4 @@ http://localhost:3000/api/v1
 - **401**: Não autorizado
 - **403**: Proibido
 - **404**: Não encontrado
-- **500**: Erro interno do servidor
-
-## Autenticação
-
-Todas as requisições (exceto login) devem incluir o header:
-```
-Authorization: Bearer {jwt_token}
-```
-
-## Paginação (Opcional)
-
-Para endpoints que retornam listas, você pode implementar paginação:
-
-**GET** `/delivery-points?page=1&limit=10`
-
-**Response:**
-```json
-{
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 50,
-    "totalPages": 5
-  }
-}
-```
-
-## Upload de Arquivos
-
-Para upload de assinaturas, use multipart/form-data:
-
-**POST** `/deliveries/{id}/signature`
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Body:** `multipart/form-data`
-- `signature`: arquivo de imagem
-
-## Webhooks (Opcional)
-
-Para notificações em tempo real, implemente webhooks:
-
-**POST** `/webhooks/delivery-status`
-
-**Request:**
-```json
-{
-  "deliveryId": 1,
-  "status": "completed",
-  "timestamp": "2024-01-01T12:00:00Z"
-}
-``` 
+- **500**: Erro interno do servidor 

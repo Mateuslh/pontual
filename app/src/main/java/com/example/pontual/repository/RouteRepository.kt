@@ -100,7 +100,7 @@ class RouteRepository {
                 if (response.isSuccessful) {
                     response.body()?.let { route ->
                         Result.success(route)
-                    } ?: Result.failure(Exception("Erro ao atribuir rota"))
+                    } ?: Result.failure(Exception("Erro ao atribuir motorista"))
                 } else {
                     Result.failure(Exception("Erro: ${response.code()}"))
                 }

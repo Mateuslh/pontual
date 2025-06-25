@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.pontual.api.models.Driver
 import com.example.pontual.repository.DriverRepository
@@ -23,7 +24,8 @@ import kotlinx.coroutines.launch
 fun DriversScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isAdmin: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -53,7 +55,9 @@ fun DriversScreen(
     }
 
     LaunchedEffect(Unit) {
-        loadDrivers()
+        if (isAdmin) {
+            loadDrivers()
+        }
     }
 
     Scaffold(
@@ -61,15 +65,19 @@ fun DriversScreen(
             TopAppBar(
                 title = { Text("Motoristas") },
                 actions = {
-                    IconButton(onClick = onNavigateToCreate) {
-                        Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                    if (isAdmin) {
+                        IconButton(onClick = onNavigateToCreate) {
+                            Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                        }
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreate) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar")
+            if (isAdmin) {
+                FloatingActionButton(onClick = onNavigateToCreate) {
+                    Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                }
             }
         }
     ) { paddingValues ->
@@ -79,6 +87,33 @@ fun DriversScreen(
                 .padding(paddingValues)
         ) {
             when {
+                !isAdmin -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Acesso Restrito",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Apenas administradores podem gerenciar motoristas",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
                 isLoading -> {
                     LoadingScreen(message = "Carregando motoristas...")
                 }

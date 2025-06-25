@@ -1,13 +1,26 @@
 package com.example.pontual
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,192 +33,132 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val userEmail = PreferenceManager.getUserEmail(context) ?: "Usuário"
     val userName = PreferenceManager.getUserName(context) ?: "Usuário"
-    val userRole = PreferenceManager.getUserRole(context) ?: "usuário"
     val isAdmin = PreferenceManager.isAdmin(context)
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pontual") },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Text("Sair")
-                    }
-                }
-            )
-        }
+            MinimalTopBar(onLogout = onLogout)
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Bem-vindo!",
-                fontSize = 28.sp,
-                style = MaterialTheme.typography.headlineMedium
+            Spacer(modifier = Modifier.height(32.dp))
+            Image(
+                painter = painterResource(id = R.drawable.logo_pontuall),
+                contentDescription = "Logo Pontuall",
+                modifier = Modifier.size(96.dp)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Você está logado como:",
-                fontSize = 16.sp,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = userName,
-                fontSize = 18.sp,
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Pontuall",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isAdmin) 
-                        MaterialTheme.colorScheme.primaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Text(
-                    text = if (isAdmin) "ADMINISTRADOR" else "USUÁRIO",
-                    modifier = Modifier.padding(8.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (isAdmin) 
-                        MaterialTheme.colorScheme.onPrimaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Informações da Conta",
-                        fontSize = 20.sp,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Text(
-                        text = "Status: Logado",
-                        fontSize = 16.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "Nome: $userName",
-                        fontSize = 16.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "Email: $userEmail",
-                        fontSize = 16.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "Tipo: ${if (isAdmin) "Administrador" else "Usuário"}",
-                        fontSize = 16.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
+            Text(
+                text = "Bem-vindo, $userName!",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(32.dp))
-
             if (isAdmin) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Painel Administrativo",
-                            fontSize = 18.sp,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Button(
-                            onClick = onNavigateToDeliveryPoints,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Gerenciar Pontos de Entrega")
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Button(
-                            onClick = onNavigateToRoutes,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Gerenciar Rotas")
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Button(
-                            onClick = onNavigateToDrivers,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Gerenciar Motoristas")
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Button(
-                            onClick = onNavigateToDeliveries,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Acompanhar Entregas")
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
+                MinimalActionButton(
+                    text = "Pontos de Entrega",
+                    icon = Icons.Default.LocationOn,
+                    onClick = onNavigateToDeliveryPoints
+                )
+                MinimalActionButton(
+                    text = "Rotas",
+                    icon = Icons.Default.Route,
+                    onClick = onNavigateToRoutes
+                )
+                MinimalActionButton(
+                    text = "Motoristas",
+                    icon = Icons.Default.People,
+                    onClick = onNavigateToDrivers
+                )
+                MinimalActionButton(
+                    text = "Entregas",
+                    icon = Icons.Default.LocalShipping,
+                    onClick = onNavigateToDeliveries
+                )
+            } else {
+                MinimalActionButton(
+                    text = "Entregas",
+                    icon = Icons.Default.LocalShipping,
+                    onClick = onNavigateToDeliveries
+                )
             }
-
-            Button(
-                onClick = onLogout,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text("Fazer Logout")
-            }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "© 2024 Pontuall",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
         }
+    }
+}
+
+@Composable
+fun MinimalTopBar(onLogout: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Spacer(modifier = Modifier.width(48.dp)) // espaço para centralizar
+        // Logo já está na tela, não precisa repetir aqui
+        IconButton(onClick = onLogout) {
+            Icon(
+                Icons.Default.Logout,
+                contentDescription = "Sair",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun MinimalActionButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 8.dp)
+            .height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+            contentColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
     }
 } 

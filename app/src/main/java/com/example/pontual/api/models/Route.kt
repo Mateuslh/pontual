@@ -7,6 +7,10 @@ data class Route(
     val name: String,
     val description: String?,
     val points: List<RoutePoint>,
+    @SerializedName("user_id")
+    val userId: Int,
+    @SerializedName("user_name")
+    val userName: String,
     @SerializedName("driver_id")
     val driverId: Int?,
     @SerializedName("driver_name")

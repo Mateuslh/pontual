@@ -54,6 +54,11 @@ fun AppContent() {
         if (screenStack.size > 1) {
             screenStack = screenStack.dropLast(1)
             currentScreen = screenStack.last()
+        } else {
+            if (currentScreen.screen != Screen.Home) {
+                currentScreen = ScreenWithParams(Screen.Home)
+                screenStack = listOf(ScreenWithParams(Screen.Home))
+            }
         }
     }
 

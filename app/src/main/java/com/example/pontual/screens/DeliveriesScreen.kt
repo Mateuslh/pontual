@@ -3,6 +3,7 @@ package com.example.pontual.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pontual.api.models.Delivery
 import com.example.pontual.api.models.DeliveryStatus
@@ -59,17 +61,39 @@ fun DeliveriesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Entregas") },
+                title = { 
+                    Text(
+                        "Entregas",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 actions = {
                     IconButton(onClick = onNavigateToCreate) {
-                        Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Adicionar",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreate) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar")
+            FloatingActionButton(
+                onClick = onNavigateToCreate,
+                shape = RoundedCornerShape(16.dp),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Adicionar",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { paddingValues ->
@@ -91,14 +115,15 @@ fun DeliveriesScreen(
                 deliveries.isEmpty() -> {
                     EmptyStateScreen(
                         title = "Nenhuma entrega encontrada",
-                        message = "Adicione a primeira entrega para começar"
+                        message = "Adicione a primeira entrega para começar",
+                        icon = Icons.Default.LocalShipping
                     )
                 }
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(deliveries) { delivery ->
                             DeliveryCard(
@@ -136,10 +161,14 @@ fun DeliveryCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -149,52 +178,68 @@ fun DeliveryCard(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = "Entrega #${delivery.id}",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Rota: ${delivery.routeName}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.LocalShipping,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Entrega #${delivery.id}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    InfoRow("Rota", delivery.routeName, Icons.Default.Route)
+                    
                     if (!delivery.driverName.isNullOrBlank()) {
-                        Text(
-                            text = "Motorista: ${delivery.driverName}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        InfoRow("Motorista", delivery.driverName, Icons.Default.Person)
                     }
-                    Text(
-                        text = "Status: ${statusLabel(delivery.status)}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = "Agendada: ${delivery.scheduledDate}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    
+                    InfoRow("Agendada", delivery.scheduledDate, Icons.Default.Schedule)
+                    
                     if (!delivery.completedDate.isNullOrBlank()) {
-                        Text(
-                            text = "Concluída: ${delivery.completedDate}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        InfoRow("Concluída", delivery.completedDate, Icons.Default.CheckCircle)
                     }
+                    
                     if (!delivery.notes.isNullOrBlank()) {
-                        Text(
-                            text = "Obs: ${delivery.notes}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        InfoRow("Observações", delivery.notes, Icons.Default.Note)
                     }
                 }
+                
                 Column {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Editar")
+                    IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Deletar")
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Deletar",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -205,24 +250,40 @@ fun DeliveryCard(
                     label = {
                         Text(
                             text = statusLabel(delivery.status),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium
                         )
                     },
-                    colors = when (delivery.status) {
-                        DeliveryStatus.COMPLETED -> AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                        DeliveryStatus.IN_PROGRESS -> AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                        DeliveryStatus.PENDING -> AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-                        DeliveryStatus.FAILED, DeliveryStatus.CANCELLED -> AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-                    }
+                    shape = RoundedCornerShape(12.dp),
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = when (delivery.status) {
+                            DeliveryStatus.COMPLETED -> MaterialTheme.colorScheme.primaryContainer
+                            DeliveryStatus.IN_PROGRESS -> MaterialTheme.colorScheme.secondaryContainer
+                            DeliveryStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
+                            DeliveryStatus.FAILED, DeliveryStatus.CANCELLED -> MaterialTheme.colorScheme.errorContainer
+                        }
+                    )
                 )
             }
         }
     }
+    
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Confirmar exclusão") },
-            text = { Text("Tem certeza que deseja excluir a entrega #${delivery.id}?") },
+            title = { 
+                Text(
+                    "Confirmar exclusão",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = { 
+                Text(
+                    "Tem certeza que deseja excluir a entrega #${delivery.id}?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -230,14 +291,55 @@ fun DeliveryCard(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Excluir")
+                    Text(
+                        "Excluir",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(
+                        "Cancelar",
+                        fontWeight = FontWeight.Medium
+                    )
                 }
-            }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun InfoRow(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "$label: ",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Normal
         )
     }
 }

@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
 fun RoutesScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isAdmin: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -59,7 +60,7 @@ fun RoutesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rotas") },
+                title = { Text(if (isAdmin) "Todas as Rotas" else "Minhas Rotas") },
                 actions = {
                     IconButton(onClick = onNavigateToCreate) {
                         Icon(Icons.Default.Add, contentDescription = "Adicionar")
@@ -90,8 +91,8 @@ fun RoutesScreen(
                 }
                 routes.isEmpty() -> {
                     EmptyStateScreen(
-                        title = "Nenhuma rota encontrada",
-                        message = "Adicione a primeira rota para começar"
+                        title = if (isAdmin) "Nenhuma rota encontrada" else "Nenhuma rota criada",
+                        message = if (isAdmin) "Nenhuma rota foi criada no sistema" else "Adicione a primeira rota para começar"
                     )
                 }
                 else -> {
@@ -114,7 +115,8 @@ fun RoutesScreen(
                                             }
                                         )
                                     }
-                                }
+                                },
+                                isAdmin = isAdmin
                             )
                         }
                     }
@@ -130,7 +132,8 @@ fun RouteCard(
     route: Route,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isAdmin: Boolean = false
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -168,6 +171,13 @@ fun RouteCard(
                         text = "${route.points.size} pontos",
                         style = MaterialTheme.typography.bodySmall
                     )
+                    
+                    if (isAdmin) {
+                        Text(
+                            text = "Criada por: ${route.userName}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     
                     if (route.driverName != null) {
                         Text(
