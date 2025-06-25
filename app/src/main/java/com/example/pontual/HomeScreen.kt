@@ -30,11 +30,17 @@ fun HomeScreen(
     onNavigateToRoutes: () -> Unit,
     onNavigateToDrivers: () -> Unit,
     onNavigateToDeliveries: () -> Unit,
+    onNavigateToAvailableRoutes: () -> Unit = {},
+    onNavigateToMyRoute: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val userName = PreferenceManager.getUserName(context) ?: "Usuário"
     val isAdmin = PreferenceManager.isAdmin(context)
+    val isDriver = PreferenceManager.isDriver(context)
+    val hasAssignedRoute = PreferenceManager.hasAssignedRoute(context)
+    val assignedRouteName = PreferenceManager.getAssignedRouteName(context)
+    val completedPointsCount = PreferenceManager.getCompletedPointsCount(context)
 
     Scaffold(
         topBar = {
@@ -70,6 +76,7 @@ fun HomeScreen(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(32.dp))
+            
             if (isAdmin) {
                 MinimalActionButton(
                     text = "Pontos de Entrega",
@@ -91,6 +98,73 @@ fun HomeScreen(
                     icon = Icons.Default.LocalShipping,
                     onClick = onNavigateToDeliveries
                 )
+            } else if (isDriver) {
+                // Motorista - mostrar status da rota atual
+                if (hasAssignedRoute) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Rota Atribuída",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = assignedRouteName ?: "Rota sem nome",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            if (completedPointsCount > 0) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "$completedPointsCount pontos concluídos",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                    
+                    MinimalActionButton(
+                        text = "Minha Rota",
+                        icon = Icons.Default.Route,
+                        onClick = onNavigateToMyRoute
+                    )
+                } else {
+                    MinimalActionButton(
+                        text = "Rotas Disponíveis",
+                        icon = Icons.Default.Route,
+                        onClick = onNavigateToAvailableRoutes
+                    )
+                }
+                
+                MinimalActionButton(
+                    text = "Entregas",
+                    icon = Icons.Default.LocalShipping,
+                    onClick = onNavigateToDeliveries
+                )
             } else {
                 MinimalActionButton(
                     text = "Entregas",
@@ -100,7 +174,7 @@ fun HomeScreen(
             }
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "© 2024 Pontuall",
+                text = "© 2025 Pontuall",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)

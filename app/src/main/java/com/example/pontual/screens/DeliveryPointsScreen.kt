@@ -17,6 +17,8 @@ import com.example.pontual.repository.DeliveryPointRepository
 import com.example.pontual.components.LoadingScreen
 import com.example.pontual.components.ErrorScreen
 import com.example.pontual.components.EmptyStateScreen
+import com.example.pontual.components.PontualTopAppBar
+import com.example.pontual.components.TopAppBarAction
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +26,7 @@ import kotlinx.coroutines.launch
 fun DeliveryPointsScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -59,12 +62,15 @@ fun DeliveryPointsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pontos de Entrega") },
+            PontualTopAppBar(
+                title = "Pontos de Entrega",
+                onNavigateBack = onNavigateBack,
                 actions = {
-                    IconButton(onClick = onNavigateToCreate) {
-                        Icon(Icons.Default.Add, contentDescription = "Adicionar")
-                    }
+                    TopAppBarAction(
+                        icon = Icons.Default.Add,
+                        contentDescription = "Adicionar",
+                        onClick = onNavigateToCreate
+                    )
                 }
             )
         },

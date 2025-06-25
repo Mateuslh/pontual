@@ -19,6 +19,8 @@ import com.example.pontual.repository.DeliveryRepository
 import com.example.pontual.components.LoadingScreen
 import com.example.pontual.components.ErrorScreen
 import com.example.pontual.components.EmptyStateScreen
+import com.example.pontual.components.PontualTopAppBar
+import com.example.pontual.components.TopAppBarAction
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +28,7 @@ import kotlinx.coroutines.launch
 fun DeliveriesScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToEdit: (Int) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -60,27 +63,16 @@ fun DeliveriesScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Entregas",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+            PontualTopAppBar(
+                title = "Entregas",
+                onNavigateBack = onNavigateBack,
                 actions = {
-                    IconButton(onClick = onNavigateToCreate) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Adicionar",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    TopAppBarAction(
+                        icon = Icons.Default.Add,
+                        contentDescription = "Adicionar",
+                        onClick = onNavigateToCreate
+                    )
+                }
             )
         },
         floatingActionButton = {
@@ -210,7 +202,7 @@ fun DeliveryCard(
                     }
                     
                     if (!delivery.notes.isNullOrBlank()) {
-                        InfoRow("Observações", delivery.notes, Icons.Default.Note)
+                        InfoRow("Observações", delivery.notes, Icons.Default.Info)
                     }
                 }
                 

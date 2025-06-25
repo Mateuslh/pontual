@@ -12,6 +12,10 @@ object PreferenceManager {
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_USER_ROLE = "user_role"
     private const val KEY_IS_LOGGED_IN = "is_logged_in"
+    private const val KEY_ASSIGNED_ROUTE_ID = "assigned_route_id"
+    private const val KEY_ASSIGNED_ROUTE_NAME = "assigned_route_name"
+    private const val KEY_COMPLETED_POINTS = "completed_points"
+    private const val KEY_POINT_PHOTOS = "point_photos"
 
     private fun getSharedPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -90,6 +94,115 @@ object PreferenceManager {
             .remove(KEY_USER_ID)
             .remove(KEY_USER_NAME)
             .remove(KEY_USER_ROLE)
+            .remove(KEY_ASSIGNED_ROUTE_ID)
+            .remove(KEY_ASSIGNED_ROUTE_NAME)
             .apply()
+    }
+
+    // Funções para gerenciar rota atribuída localmente
+    fun assignRoute(context: Context, routeId: Int, routeName: String) {
+        val prefs = getSharedPreferences(context)
+        prefs.edit()
+            .putInt(KEY_ASSIGNED_ROUTE_ID, routeId)
+            .putString(KEY_ASSIGNED_ROUTE_NAME, routeName)
+            .apply()
+    }
+
+    fun getAssignedRouteId(context: Context): Int? {
+        val prefs = getSharedPreferences(context)
+        val routeId = prefs.getInt(KEY_ASSIGNED_ROUTE_ID, -1)
+        return if (routeId == -1) null else routeId
+    }
+
+    fun getAssignedRouteName(context: Context): String? {
+        val prefs = getSharedPreferences(context)
+        return prefs.getString(KEY_ASSIGNED_ROUTE_NAME, null)
+    }
+
+    fun hasAssignedRoute(context: Context): Boolean {
+        return getAssignedRouteId(context) != null
+    }
+
+    fun finishRoute(context: Context) {
+        val prefs = getSharedPreferences(context)
+        prefs.edit()
+            .remove(KEY_ASSIGNED_ROUTE_ID)
+            .remove(KEY_ASSIGNED_ROUTE_NAME)
+            .remove(KEY_COMPLETED_POINTS)
+            .remove(KEY_POINT_PHOTOS)
+            .apply()
+    }
+
+    fun isDriver(context: Context): Boolean {
+        val role = getUserRole(context)
+        return role == "user" || role == "driver"
+    }
+
+    // Funções para controlar pontos completados
+    fun completePoint(context: Context, pointId: Int, photoUri: String? = null) {
+        val prefs = getSharedPreferences(context)
+        val completedPoints = getCompletedPoints(context).toMutableSet()
+        completedPoints.add(pointId)
+        
+        prefs.edit()
+            .putStringSet(KEY_COMPLETED_POINTS, completedPoints.map { it.toString() }.toSet())
+            .apply()
+            
+        // Salvar foto se fornecida
+        if (photoUri != null) {
+            savePointPhoto(context, pointId, photoUri)
+        }
+    }
+
+    fun isPointCompleted(context: Context, pointId: Int): Boolean {
+        return getCompletedPoints(context).contains(pointId)
+    }
+
+    fun getCompletedPoints(context: Context): Set<Int> {
+        val prefs = getSharedPreferences(context)
+        return prefs.getStringSet(KEY_COMPLETED_POINTS, emptySet())
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet() ?: emptySet()
+    }
+
+    fun getCompletedPointsCount(context: Context): Int {
+        return getCompletedPoints(context).size
+    }
+
+    fun areAllPointsCompleted(context: Context, totalPoints: Int): Boolean {
+        return getCompletedPointsCount(context) >= totalPoints
+    }
+
+    // Funções para gerenciar fotos dos pontos
+    private fun savePointPhoto(context: Context, pointId: Int, photoUri: String) {
+        val prefs = getSharedPreferences(context)
+        val currentPhotos = getPointPhotos(context).toMutableMap()
+        currentPhotos[pointId] = photoUri
+        
+        // Converter para formato que pode ser salvo em SharedPreferences
+        val photosString = currentPhotos.entries.joinToString(";") { "${it.key}:${it.value}" }
+        prefs.edit()
+            .putString(KEY_POINT_PHOTOS, photosString)
+            .apply()
+    }
+
+    fun getPointPhoto(context: Context, pointId: Int): String? {
+        return getPointPhotos(context)[pointId]
+    }
+
+    private fun getPointPhotos(context: Context): Map<Int, String> {
+        val prefs = getSharedPreferences(context)
+        val photosString = prefs.getString(KEY_POINT_PHOTOS, "") ?: ""
+        
+        if (photosString.isEmpty()) return emptyMap()
+        
+        return photosString.split(";")
+            .mapNotNull { entry ->
+                val parts = entry.split(":")
+                if (parts.size == 2) {
+                    parts[0].toIntOrNull()?.let { it to parts[1] }
+                } else null
+            }
+            .toMap()
     }
 } 

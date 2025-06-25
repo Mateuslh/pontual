@@ -21,6 +21,8 @@ sealed class Screen {
     object DriverForm : Screen()
     object Deliveries : Screen()
     object DeliveryForm : Screen()
+    object AvailableRoutes : Screen()
+    object MyRoute : Screen()
 }
 
 data class ScreenWithParams(
@@ -49,7 +51,9 @@ fun AppNavigation(
                 onNavigateToDeliveryPoints = { onNavigate(ScreenWithParams(Screen.DeliveryPoints)) },
                 onNavigateToRoutes = { onNavigate(ScreenWithParams(Screen.Routes)) },
                 onNavigateToDrivers = { onNavigate(ScreenWithParams(Screen.Drivers)) },
-                onNavigateToDeliveries = { onNavigate(ScreenWithParams(Screen.Deliveries)) }
+                onNavigateToDeliveries = { onNavigate(ScreenWithParams(Screen.Deliveries)) },
+                onNavigateToAvailableRoutes = { onNavigate(ScreenWithParams(Screen.AvailableRoutes)) },
+                onNavigateToMyRoute = { onNavigate(ScreenWithParams(Screen.MyRoute)) }
             )
         }
         
@@ -58,7 +62,8 @@ fun AppNavigation(
                 onNavigateToCreate = { onNavigate(ScreenWithParams(Screen.DeliveryPointForm)) },
                 onNavigateToEdit = { pointId ->
                     onNavigate(ScreenWithParams(Screen.DeliveryPointForm, mapOf("pointId" to pointId)))
-                }
+                },
+                onNavigateBack = onNavigateBack
             )
         }
         
@@ -75,7 +80,8 @@ fun AppNavigation(
                 onNavigateToCreate = { onNavigate(ScreenWithParams(Screen.RouteForm)) },
                 onNavigateToEdit = { routeId ->
                     onNavigate(ScreenWithParams(Screen.RouteForm, mapOf("routeId" to routeId)))
-                }
+                },
+                onNavigateBack = onNavigateBack
             )
         }
         
@@ -92,7 +98,8 @@ fun AppNavigation(
                 onNavigateToCreate = { onNavigate(ScreenWithParams(Screen.DriverForm)) },
                 onNavigateToEdit = { driverId ->
                     onNavigate(ScreenWithParams(Screen.DriverForm, mapOf("driverId" to driverId)))
-                }
+                },
+                onNavigateBack = onNavigateBack
             )
         }
         
@@ -109,7 +116,8 @@ fun AppNavigation(
                 onNavigateToCreate = { onNavigate(ScreenWithParams(Screen.DeliveryForm)) },
                 onNavigateToEdit = { deliveryId ->
                     onNavigate(ScreenWithParams(Screen.DeliveryForm, mapOf("deliveryId" to deliveryId)))
-                }
+                },
+                onNavigateBack = onNavigateBack
             )
         }
         
@@ -117,6 +125,18 @@ fun AppNavigation(
             val deliveryId = currentScreen.params["deliveryId"] as? Int
             DeliveryFormScreen(
                 deliveryId = deliveryId,
+                onNavigateBack = onNavigateBack
+            )
+        }
+        
+        is Screen.AvailableRoutes -> {
+            com.example.pontual.screens.AvailableRoutesScreen(
+                onNavigateBack = onNavigateBack
+            )
+        }
+        
+        is Screen.MyRoute -> {
+            com.example.pontual.screens.MyRouteScreen(
                 onNavigateBack = onNavigateBack
             )
         }
